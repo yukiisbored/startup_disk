@@ -1,0 +1,68 @@
+use byteorder::{LittleEndian, ReadBytesExt};
+use efivar::efi::Variable;
+use thiserror::Error as ThisError;
+
+#[derive(ThisError, Debug)]
+pub enum Error {
+    #[error("EFI variable error: {0}")]
+    EfiVar(#[from] efivar::Error),
+
+    #[error("IO error: {0}")]
+    ReadU16(#[from] std::io::Error),
+}
+
+/// Represents a boot entry in the EFI system
+pub struct BootEntry {
+    /// ID of the boot entry
+    pub id: u16,
+    /// Description of the boot entry
+    pub description: String,
+    /// Whether this entry is currently running
+    pub current: bool,
+    /// Whether this entry is the default one
+    pub default: bool,
+}
+
+/// Retrieves the list of boot entries from the EFI system
+pub fn boot_entries() -> Result<Vec<BootEntry>, Error> {
+    let manager = efivar::system();
+
+    let entries = manager.get_boot_entries()?;
+
+    let active_id = manager
+        .read(&Variable::new("BootCurrent"))?
+        .0
+        .as_slice()
+        .read_u16::<LittleEndian>()?;
+
+    let default = manager.get_boot_order()?.first().copied();
+
+    Ok(entries
+        .into_iter()
+        .filter_map(|(res, _var)| {
+            let Ok(boot_var) = res else {
+                return None;
+            };
+
+            Some(BootEntry {
+                id: boot_var.id,
+                description: boot_var.entry.description,
+                current: boot_var.id == active_id,
+                default: default == Some(boot_var.id),
+            })
+        })
+        .collect())
+}
+
+/// Sets the specified boot entry as the default by moving it to the front of the boot order
+pub fn set_default(id: u16) -> Result<(), Error> {
+    let mut manager = efivar::system();
+
+    let mut order = manager.get_boot_order()?;
+    order.retain(|&x| x != id);
+    order.insert(0, id);
+
+    manager.set_boot_order(order)?;
+
+    Ok(())
+}
