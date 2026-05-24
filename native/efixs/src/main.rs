@@ -9,6 +9,7 @@ fn main() -> Result<()> {
         println!("Description: {}", entry.description);
         println!("Active: {}", entry.current);
         println!("Default: {}", entry.default);
+        println!("Next: {}", entry.next);
         println!();
     }
 

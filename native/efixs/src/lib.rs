@@ -21,6 +21,8 @@ pub struct BootEntry {
     pub current: bool,
     /// Whether this entry is the default one
     pub default: bool,
+    /// Whether this entry is set to be the next one to boot
+    pub next: bool,
 }
 
 /// Retrieves the list of boot entries from the EFI system
@@ -29,13 +31,18 @@ pub fn boot_entries() -> Result<Vec<BootEntry>, Error> {
 
     let entries = manager.get_boot_entries()?;
 
-    let active_id = manager
+    let current = manager
         .read(&Variable::new("BootCurrent"))?
         .0
         .as_slice()
         .read_u16::<LittleEndian>()?;
 
     let default = manager.get_boot_order()?.first().copied();
+
+    let next: Option<u16> = manager
+        .read(&Variable::new("BootNext"))
+        .ok()
+        .and_then(|var| var.0.as_slice().read_u16::<LittleEndian>().ok());
 
     Ok(entries
         .into_iter()
@@ -47,8 +54,9 @@ pub fn boot_entries() -> Result<Vec<BootEntry>, Error> {
             Some(BootEntry {
                 id: boot_var.id,
                 description: boot_var.entry.description,
-                current: boot_var.id == active_id,
+                current: current == boot_var.id,
                 default: default == Some(boot_var.id),
+                next: next == Some(boot_var.id),
             })
         })
         .collect())
