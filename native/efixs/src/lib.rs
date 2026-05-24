@@ -1,5 +1,5 @@
 use byteorder::{LittleEndian, ReadBytesExt};
-use efivar::efi::Variable;
+use efivar::efi::{Variable, VariableFlags};
 use thiserror::Error as ThisError;
 
 #[derive(ThisError, Debug)]
@@ -71,6 +71,23 @@ pub fn set_default(id: u16) -> Result<(), Error> {
     order.insert(0, id);
 
     manager.set_boot_order(order)?;
+
+    Ok(())
+}
+
+/// Sets the specified boot entry as the next one to boot by writing to the BootNext variable
+pub fn set_next(id: Option<u16>) -> Result<(), Error> {
+    let mut manager = efivar::system();
+
+    if let Some(id) = id {
+        manager.write(
+            &Variable::new("BootNext"),
+            VariableFlags::default(),
+            &id.to_le_bytes(),
+        )?;
+    } else {
+        manager.delete(&Variable::new("BootNext"))?;
+    }
 
     Ok(())
 }
