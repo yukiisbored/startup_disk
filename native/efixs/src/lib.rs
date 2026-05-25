@@ -1,5 +1,7 @@
+use std::process::Command;
+
 use byteorder::{LittleEndian, ReadBytesExt};
-use efivar::efi::{Variable, VariableFlags};
+use efivar::efi::Variable;
 use thiserror::Error as ThisError;
 
 #[derive(ThisError, Debug)]
@@ -9,6 +11,12 @@ pub enum Error {
 
     #[error("IO error: {0}")]
     ReadU16(#[from] std::io::Error),
+
+    #[error("Unsupported platform")]
+    UnsupportedPlatform,
+
+    #[error("efibootmgr returned a non-zero exit status")]
+    EfibootmgrNonZero,
 }
 
 /// Represents a boot entry in the EFI system
@@ -62,21 +70,64 @@ pub fn boot_entries() -> Result<Vec<BootEntry>, Error> {
         .collect())
 }
 
-/// Sets the specified boot entry as the default by moving it to the front of the boot order
-pub fn set_default(id: u16) -> Result<(), Error> {
-    let mut manager = efivar::system();
+fn new_boot_order(id: u16) -> Result<Vec<u16>, Error> {
+    let manager = efivar::system();
 
     let mut order = manager.get_boot_order()?;
     order.retain(|&x| x != id);
     order.insert(0, id);
 
+    Ok(order)
+}
+
+#[cfg(windows)]
+fn set_default_via_efivar(id: u16) -> Result<(), Error> {
+    let order = new_boot_order(id)?;
+
+    let mut manager = efivar::system();
     manager.set_boot_order(order)?;
 
     Ok(())
 }
 
-/// Sets the specified boot entry as the next one to boot by writing to the BootNext variable
-pub fn set_next(id: Option<u16>) -> Result<(), Error> {
+#[cfg(unix)]
+fn set_default_via_efibootmgr(id: u16) -> Result<(), Error> {
+    let order = new_boot_order(id)?;
+    let order_arg = order
+        .iter()
+        .map(|id| format!("{:04X}", id))
+        .collect::<Vec<_>>()
+        .join(",");
+
+    let status = Command::new("pkexec")
+        .args([
+            "pkexec",
+            "sh",
+            "-c",
+            &format!("efibootmgr -o {}", order_arg),
+        ])
+        .status()?;
+
+    if !status.success() {
+        return Err(Error::EfibootmgrNonZero);
+    }
+
+    Ok(())
+}
+
+/// Sets the specified boot entry as the default by moving it to the front of the boot order
+pub fn set_default(id: u16) -> Result<(), Error> {
+    cfg_select! {
+        windows => set_default_via_efivar(id),
+        unix => set_default_via_efibootmgr(id),
+        _ => Err(Error::UnsupportedPlatform),
+    }
+}
+
+#[cfg(windows)]
+fn set_next_via_efivar(id: Option<u16>) -> Result<(), Error> {
+    use efivar::efi::VariableFlags;
+
     let mut manager = efivar::system();
 
     if let Some(id) = id {
@@ -90,4 +141,32 @@ pub fn set_next(id: Option<u16>) -> Result<(), Error> {
     }
 
     Ok(())
+}
+
+#[cfg(unix)]
+fn set_next_via_efibootmgr(id: Option<u16>) -> Result<(), Error> {
+    let status = if let Some(id) = id {
+        Command::new("pkexec")
+            .args(["pkexec", "sh", "-c", &format!("efibootmgr -n {:04X}", id)])
+            .status()?
+    } else {
+        Command::new("pkexec")
+            .args(["pkexec", "sh", "-c", "efibootmgr -N"])
+            .status()?
+    };
+
+    if !status.success() {
+        return Err(Error::EfibootmgrNonZero);
+    }
+
+    Ok(())
+}
+
+/// Sets the specified boot entry as the next one to boot by writing to the BootNext variable
+pub fn set_next(id: Option<u16>) -> Result<(), Error> {
+    cfg_select! {
+        windows => set_next_via_efivar(id),
+        unix => set_next_via_efibootmgr(id),
+        _ => Err(Error::UnsupportedPlatform),
+    }
 }
