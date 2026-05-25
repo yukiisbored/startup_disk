@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "startup_disk" "\0"
+            VALUE "CompanyName", "yukiisbo.red" "\0"
+            VALUE "FileDescription", "Startup Disk" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "startup_disk" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
+            VALUE "LegalCopyright", "This is free and unencumbered software released into the public domain, see https://unlicese.org." "\0"
             VALUE "OriginalFilename", "startup_disk.exe" "\0"
             VALUE "ProductName", "startup_disk" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
