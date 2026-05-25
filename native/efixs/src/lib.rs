@@ -1,5 +1,3 @@
-use std::process::Command;
-
 use byteorder::{LittleEndian, ReadBytesExt};
 use efivar::efi::Variable;
 use thiserror::Error as ThisError;
@@ -92,6 +90,8 @@ fn set_default_via_efivar(id: u16) -> Result<(), Error> {
 
 #[cfg(unix)]
 fn set_default_via_efibootmgr(id: u16) -> Result<(), Error> {
+    use std::process::Command;
+
     let order = new_boot_order(id)?;
     let order_arg = order
         .iter()
@@ -145,6 +145,8 @@ fn set_next_via_efivar(id: Option<u16>) -> Result<(), Error> {
 
 #[cfg(unix)]
 fn set_next_via_efibootmgr(id: Option<u16>) -> Result<(), Error> {
+    use std::process::Command;
+
     let status = if let Some(id) = id {
         Command::new("pkexec")
             .args(["pkexec", "sh", "-c", &format!("efibootmgr -n {:04X}", id)])
