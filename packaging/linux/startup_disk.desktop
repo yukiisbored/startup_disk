@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Startup Disk
+Comment=Inspect and manage UEFI boot entries
+Exec=startup_disk
+Icon=startup_disk
+Terminal=false
+Categories=System;Settings;
+StartupWMClass=startup_disk
