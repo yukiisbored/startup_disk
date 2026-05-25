@@ -3,11 +3,18 @@ import 'dart:async';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:rinf/rinf.dart';
+import 'package:system_theme/system_theme.dart';
 
 import 'src/bindings/bindings.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   await initializeRust(assignRustSignal);
+
+  SystemTheme.fallbackColor = Colors.blue;
+  await SystemTheme.accentColor.load();
+
   runApp(const StartupDiskApp());
 
   doWhenWindowReady(() {
@@ -36,8 +43,7 @@ class StartupDiskApp extends StatelessWidget {
       title: 'Startup Disk',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.blue),
-        scaffoldBackgroundColor: const Color(0xFFF2F2F7),
+        colorScheme: .fromSeed(seedColor: SystemTheme.accentColor.accent),
         useMaterial3: true,
       ),
       home: WindowBorder(

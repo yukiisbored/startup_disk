@@ -38,6 +38,7 @@ dependencies:
   meta: ^1.18.0
   tuple: ^2.0.2
   bitsdojo_window: ^0.1.6
+  system_theme: ^3.2.0
 
 dev_dependencies:
   flutter_test:
