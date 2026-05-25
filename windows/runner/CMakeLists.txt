@@ -36,5 +36,10 @@ target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
+# Don't let the linker auto-inject a <trustInfo> block; runner.exe.manifest
+# already supplies one with level="requireAdministrator". Without this, mt.exe
+# fails to merge the two conflicting trustInfo blocks and emits LNK1327.
+target_link_options(${BINARY_NAME} PRIVATE "/MANIFESTUAC:NO")
+
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
