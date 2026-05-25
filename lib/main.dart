@@ -10,6 +10,14 @@ Future<void> main() async {
   runApp(const StartupDiskApp());
 }
 
+void reboot(int id) {
+  Reboot(value: id).sendSignalToRust();
+}
+
+void setDefault(int id) {
+  SetDefault(value: id).sendSignalToRust();
+}
+
 class StartupDiskApp extends StatelessWidget {
   const StartupDiskApp({super.key});
 
@@ -353,20 +361,12 @@ class _ActionBar extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           OutlinedButton(
-            onPressed: entry == null
-                ? null
-                : () => debugPrint(
-                    'set_default → id=${entry.id} "${entry.description}"',
-                  ),
+            onPressed: entry == null ? null : () => setDefault(entry.id),
             child: const Text('Set as Default'),
           ),
           const SizedBox(width: 8),
           FilledButton.icon(
-            onPressed: entry == null
-                ? null
-                : () => debugPrint(
-                    'set_next + restart → id=${entry.id} "${entry.description}"',
-                  ),
+            onPressed: entry == null ? null : () => reboot(entry.id),
             icon: const Icon(Icons.restart_alt),
             label: const Text('Restart with This Disk…'),
           ),

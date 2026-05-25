@@ -30,3 +30,9 @@ impl From<EfixsBootEntry> for BootEntry {
         }
     }
 }
+
+#[derive(Deserialize, DartSignal)]
+pub struct Reboot(pub u16);
+
+#[derive(Deserialize, DartSignal)]
+pub struct SetDefault(pub u16);
