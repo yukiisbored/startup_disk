@@ -111,6 +111,7 @@ class _StartupDiskPaneState extends State<StartupDiskPane> {
         child: Column(
           crossAxisAlignment: .stretch,
           children: [
+            const _WindowTitleBar(),
             _Header(onRefresh: _refresh),
             const Divider(height: 1),
             Expanded(
@@ -129,6 +130,54 @@ class _StartupDiskPaneState extends State<StartupDiskPane> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _WindowTitleBar extends StatelessWidget {
+  const _WindowTitleBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return WindowTitleBarBox(
+      child: ColoredBox(
+        color: const Color(0xFFE5E5EA),
+        child: Row(
+          children: [
+            Expanded(child: MoveWindow()),
+            const _WindowButtons(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WindowButtons extends StatelessWidget {
+  const _WindowButtons();
+
+  @override
+  Widget build(BuildContext context) {
+    final buttonColors = WindowButtonColors(
+      iconNormal: Colors.black87,
+      mouseOver: Colors.black12,
+      mouseDown: Colors.black26,
+      iconMouseOver: Colors.black87,
+      iconMouseDown: Colors.black87,
+    );
+    final closeColors = WindowButtonColors(
+      iconNormal: Colors.black87,
+      mouseOver: const Color(0xFFD32F2F),
+      mouseDown: const Color(0xFFB71C1C),
+      iconMouseOver: Colors.white,
+      iconMouseDown: Colors.white,
+    );
+    return Row(
+      children: [
+        MinimizeWindowButton(colors: buttonColors),
+        MaximizeWindowButton(colors: buttonColors),
+        CloseWindowButton(colors: closeColors),
+      ],
     );
   }
 }
