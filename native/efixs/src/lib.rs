@@ -38,10 +38,9 @@ pub fn boot_entries() -> Result<Vec<BootEntry>, Error> {
     let entries = manager.get_boot_entries()?;
 
     let current = manager
-        .read(&Variable::new("BootCurrent"))?
-        .0
-        .as_slice()
-        .read_u16::<LittleEndian>()?;
+        .read(&Variable::new("BootCurrent"))
+        .ok()
+        .and_then(|var| var.0.as_slice().read_u16::<LittleEndian>().ok());
 
     let default = manager.get_boot_order()?.first().copied();
 
@@ -60,7 +59,7 @@ pub fn boot_entries() -> Result<Vec<BootEntry>, Error> {
             Some(BootEntry {
                 id: boot_var.id,
                 description: boot_var.entry.description,
-                current: current == boot_var.id,
+                current: current == Some(boot_var.id),
                 default: default == Some(boot_var.id),
                 next: next == Some(boot_var.id),
             })
