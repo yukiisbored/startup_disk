@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:rinf/rinf.dart';
 
@@ -8,6 +9,14 @@ import 'src/bindings/bindings.dart';
 Future<void> main() async {
   await initializeRust(assignRustSignal);
   runApp(const StartupDiskApp());
+
+  doWhenWindowReady(() {
+    const initialSize = Size(800, 450);
+    appWindow.minSize = initialSize;
+    appWindow.size = initialSize;
+    appWindow.alignment = Alignment.center;
+    appWindow.show();
+  });
 }
 
 void reboot(int id) {
@@ -31,7 +40,10 @@ class StartupDiskApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFF2F2F7),
         useMaterial3: true,
       ),
-      home: const StartupDiskPane(),
+      home: WindowBorder(
+        color: Theme.of(context).colorScheme.primary,
+        child: StartupDiskPane(),
+      ),
     );
   }
 }
