@@ -411,6 +411,7 @@ class _ActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final entry = selected;
     return Container(
+      height: 77,
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: Colors.black12)),
